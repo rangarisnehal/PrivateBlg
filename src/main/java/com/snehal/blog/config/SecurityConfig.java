@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -32,7 +33,7 @@ public class SecurityConfig {
 
 //	protected void configure(HttpSecurity http) throws Exception {
 
-	@SuppressWarnings("removal")
+	
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
@@ -54,8 +55,7 @@ public class SecurityConfig {
 //		return http.build();
 		
 		http.csrf(csrf-> csrf.disable()).cors(cors-> cors.disable())
-		.authorizeHttpRequests(auth-> auth.requestMatchers("/api/**").authenticated().requestMatchers("auth/login")
-				.permitAll().anyRequest().authenticated()).exceptionHandling(ex-> ex.authenticationEntryPoint(point))
+		.authorizeHttpRequests(auth-> auth.requestMatchers("/api/users/create").permitAll().requestMatchers("/auth/login").permitAll().anyRequest().authenticated()).exceptionHandling(ex-> ex.authenticationEntryPoint(point))
 		.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 		http.addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class);
 		return http.build();
@@ -70,6 +70,15 @@ public class SecurityConfig {
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration builder) throws Exception {
 		return builder.getAuthenticationManager();
+	}
+	
+	
+	@Bean
+	public DaoAuthenticationProvider daoAuthenticationProvider() {
+		DaoAuthenticationProvider dao = new DaoAuthenticationProvider();
+		dao.setUserDetailsService(customUserDetailService);
+		dao.setPasswordEncoder(passwordEncoder());
+		return dao;
 	}
 
 }
